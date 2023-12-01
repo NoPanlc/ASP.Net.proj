@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using System.ComponentModel.DataAnnotations;
 using Weather.Server.DTOs;
 
 namespace Weather.Server.Controllers
@@ -34,5 +35,13 @@ namespace Weather.Server.Controllers
             })
             .ToArray();
         }
+        [HttpGet("CurrentWeather")]
+        public CurrentWeatherDTO GetCurrentWeather([FromQuery][Required] string cityName,
+                                                  [FromQuery] string stateCode,
+                                                  [FromQuery] int? countryCode)
+        {
+            return new CurrentWeatherDTO();
+        }
     }
+}
 }
