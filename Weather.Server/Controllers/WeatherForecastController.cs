@@ -56,7 +56,7 @@ namespace Weather.Server.Controllers
                 StringBuilder geocode = new StringBuilder();
                 string geocodeUrl = geocode.Append(_openWeather.Site + _openWeather.GeoResponseType + _openWeather.GeoVersion)
                           .Append(_openWeather.GeolocationTemplate.Replace("cityname", cityName)
-                          .Replace(",stateCode", stateCode.HasValue ? stateCode.Value.ToString() : "")
+                          .Replace(",statecode", stateCode.HasValue ? stateCode.Value.ToString() : "")
                           .Replace(",countrycode", countryCode.HasValue ? countryCode.Value.ToString() : "")
                           .Replace("APIKey", _openWeather.Key)).ToString();
 
@@ -68,26 +68,26 @@ namespace Weather.Server.Controllers
                 }
 
                 string geo = await geoResponse.Content.ReadAsStringAsync();
-                var geoCode = JsonConvert.DeserializeObject<GeoCodeDTO>(geo);
+                var geoCode = JsonConvert.DeserializeObject<List<GeoCodeDTO>>(geo);
 
-                if (geoCode == null)
+                if (geoCode == null || geoCode == null || geoCode.Count == 0)
                 {
                     return BadRequest("Deserialization of geocode failed");
                 }
-
+                var firstCity = geoCode.First();
 
                 StringBuilder currentWeatherUrl = new StringBuilder();
-                currentWeatherUrl.Append(_openWeather.Site + _openWeather.WeatherResponseType + _openWeather.WeatherVersion)
-                                 .Append(_openWeather.CurrentWeatherTemplate.Replace("=lat", "=" + geoCode.Lat)
-                                 .Replace("=lon", "=" + geoCode.Lon).Replace("APIKey", _openWeather.Key)).ToString();
+                string currentUrl = currentWeatherUrl.Append(_openWeather.Site + _openWeather.WeatherResponseType + _openWeather.WeatherVersion)
+                                .Append(_openWeather.CurrentWeatherTemplate.Replace("=lat", "=" + firstCity.Lat)
+                                .Replace("=lon", "=" + firstCity.Lon).Replace("APIKey", _openWeather.Key)).ToString();
 
-                var currentWeatherResponse = await _httpClient.GetAsync(geocodeUrl);
+                var currentWeatherResponse = await _httpClient.GetAsync(currentUrl);
                 if (!currentWeatherResponse.IsSuccessStatusCode || currentWeatherResponse == null || currentWeatherResponse.Content == null)
                 {
                     return BadRequest("Call to Open Weather for current weather failed");
                 }
 
-                string current = await geoResponse.Content.ReadAsStringAsync();
+                string current = await currentWeatherResponse.Content.ReadAsStringAsync();
                 var currentWeather = JsonConvert.DeserializeObject<CurrentWeatherDTO>(current);
                 if (currentWeather == null)
                 {

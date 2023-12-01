@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Configuration;
+using Weather.Server.DTOs;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -6,6 +8,8 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.Configure<OpenWeather>(builder.Configuration.GetSection("OpenWeather"));
+
 
 var app = builder.Build();
 

@@ -12,9 +12,9 @@ namespace Weather.Server.DTOs
     }
     public class Main
     {
-        public int Temp { get; set; }
-        public int Pressure { get; set; }
-        public int Humidity { get; set; }
+        public double Temp { get; set; }
+        public double Pressure { get; set; }
+        public double Humidity { get; set; }
     }
     public class Wind
     {
@@ -22,6 +22,6 @@ namespace Weather.Server.DTOs
     }
     public class Clouds
     {
-        public int All { get; set; }
+        public double All { get; set; }
     }
 }
