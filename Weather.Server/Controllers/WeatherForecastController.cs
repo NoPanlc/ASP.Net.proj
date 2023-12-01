@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
+using Weather.Server.DTOs;
 
 namespace Weather.Server.Controllers
 {
@@ -6,6 +8,7 @@ namespace Weather.Server.Controllers
     [Route("[controller]")]
     public class WeatherForecastController : ControllerBase
     {
+        private readonly OpenWeather _openWeather;
         private static readonly string[] Summaries = new[]
         {
             "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
@@ -13,8 +16,10 @@ namespace Weather.Server.Controllers
 
         private readonly ILogger<WeatherForecastController> _logger;
 
-        public WeatherForecastController(ILogger<WeatherForecastController> logger)
+        public WeatherForecastController(ILogger<WeatherForecastController> logger,
+            IOptions<OpenWeather> openWeather)
         {
+            _openWeather = openWeather.Value;
             _logger = logger;
         }
 
