@@ -1,7 +1,7 @@
 ﻿using System.Runtime.Serialization;
 
 
-namespace Weather.Server.DTOs
+namespace Weather.Server.DTOs.CurrentWeather
 {
     public class CurrentWeatherDTO
     {

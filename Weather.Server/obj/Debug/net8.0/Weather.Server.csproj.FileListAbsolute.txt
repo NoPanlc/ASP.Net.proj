@@ -34,3 +34,4 @@ D:\Angular\Weather\Weather.Server\obj\Debug\net8.0\refint\Weather.Server.dll
 D:\Angular\Weather\Weather.Server\obj\Debug\net8.0\Weather.Server.pdb
 D:\Angular\Weather\Weather.Server\obj\Debug\net8.0\Weather.Server.genruntimeconfig.cache
 D:\Angular\Weather\Weather.Server\obj\Debug\net8.0\ref\Weather.Server.dll
+D:\Angular\Weather\Weather.Server\bin\Debug\net8.0\Newtonsoft.Json.dll
