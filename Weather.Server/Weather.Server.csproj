@@ -8,6 +8,7 @@
     <SpaRoot>..\weather.client</SpaRoot>
     <SpaProxyLaunchCommand>npm start</SpaProxyLaunchCommand>
     <SpaProxyServerUrl>https://localhost:4200</SpaProxyServerUrl>
+    <UserSecretsId>68a409ee-9a0e-4508-93e2-1cc5e15343a8</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

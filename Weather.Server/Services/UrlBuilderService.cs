@@ -24,14 +24,5 @@ namespace Weather.Server.Services
                                 .Replace("=lon", "=" + Name.Lon).Replace("APIKey", openWeather.Key)).ToString();
             return currentUrl;
         }
-        public string FiveDaysUrl(string template, OpenWeather openWeather, GeoCodeDTO Name) 
-        {
-            StringBuilder fiveDaysUrl = new StringBuilder();
-            string currentUrl = fiveDaysUrl.Append(openWeather.Site + openWeather.WeatherResponseType + openWeather.WeatherVersion)
-                                .Append(openWeather.FiveDaysForecastTemplate.Replace("=lat", "=" + Name.Lat)
-                                .Replace("=lon", "=" + Name.Lon).Replace("APIKey", openWeather.Key)).ToString();
-
-            return currentUrl;
-        }
     }
 }
