@@ -16,7 +16,7 @@ namespace Weather.Server.Services
                       .Replace("APIKey", openWeather.Key)).ToString();
             return geocodeUrl;
         }
-        public string WeatherUrl(OpenWeather openWeather, GeoCodeDTO Name)
+        public string WeatherUrl(string template,OpenWeather openWeather, GeoCodeDTO Name)
         {
             StringBuilder currentWeatherUrl = new StringBuilder();
             string currentUrl = currentWeatherUrl.Append(openWeather.Site + openWeather.WeatherResponseType + openWeather.WeatherVersion)
@@ -24,7 +24,7 @@ namespace Weather.Server.Services
                                 .Replace("=lon", "=" + Name.Lon).Replace("APIKey", openWeather.Key)).ToString();
             return currentUrl;
         }
-        public string FiveDaysUrl(OpenWeather openWeather, GeoCodeDTO Name) 
+        public string FiveDaysUrl(string template, OpenWeather openWeather, GeoCodeDTO Name) 
         {
             StringBuilder fiveDaysUrl = new StringBuilder();
             string currentUrl = fiveDaysUrl.Append(openWeather.Site + openWeather.WeatherResponseType + openWeather.WeatherVersion)

@@ -6,8 +6,6 @@ namespace Weather.Server.Interfaces
     {
         string GeoCodeUrl (OpenWeather openWeather, string cityName, int? stateCode, int? countryCode);
 
-        string WeatherUrl (OpenWeather openWeather, GeoCodeDTO Name);
-
-        string FiveDaysUrl(OpenWeather openWeather, GeoCodeDTO Name);
+        string WeatherUrl (string template, OpenWeather openWeather, GeoCodeDTO Name);
     }
 }

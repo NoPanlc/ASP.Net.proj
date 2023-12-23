@@ -7,7 +7,6 @@ using Weather.Server.DTOs;
 using Weather.Server.DTOs.CurrentWeather;
 using Weather.Server.DTOs.FiveDaysWeather;
 using Weather.Server.Interfaces;
-using System.Xml.Linq;
 
 namespace Weather.Server.Controllers
 {
@@ -78,7 +77,7 @@ namespace Weather.Server.Controllers
                 }
                 var Name = geoCode.First();
 
-                string currentUrl = _urlBuilder.WeatherUrl(_openWeather, Name);
+                string currentUrl = _urlBuilder.WeatherUrl(_openWeather.CurrentWeatherTemplate, _openWeather, Name);
 
                 var currentWeatherResponse = await _httpClient.GetAsync(currentUrl);
                 if (!currentWeatherResponse.IsSuccessStatusCode || currentWeatherResponse == null || currentWeatherResponse.Content == null)
@@ -134,7 +133,7 @@ namespace Weather.Server.Controllers
                 }
                 var Name = geoCode.First();
 
-                string currentUrl = _urlBuilder.FiveDaysUrl(_openWeather, Name);
+                string currentUrl = _urlBuilder.WeatherUrl(_openWeather.FiveDaysForecastTemplate,_openWeather, Name);
 
                 var fiveDaysWeatherResponse = await _httpClient.GetAsync(currentUrl);
                 if (!fiveDaysWeatherResponse.IsSuccessStatusCode || fiveDaysWeatherResponse == null || fiveDaysWeatherResponse.Content == null)
