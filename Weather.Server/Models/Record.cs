@@ -3,7 +3,7 @@
 
 namespace Weather.Server.Models
 {
-    public class Record
+    public class Record : IHasGuidId, IHasDateStamp, IHasSoftDelete
     {
         public Guid Id { get; set; }
         public DateTime CreatedAt { get; set; }
