@@ -7,6 +7,9 @@ using Weather.Server.DTOs;
 using Weather.Server.DTOs.CurrentWeather;
 using Weather.Server.DTOs.FiveDaysWeather;
 using Weather.Server.Interfaces;
+using Weather.Server.Data;
+using Microsoft.EntityFrameworkCore;
+using Weather.Server.Models;
 
 namespace Weather.Server.Controllers
 {
@@ -16,6 +19,7 @@ namespace Weather.Server.Controllers
     {
         private readonly OpenWeather _openWeather;
         private readonly HttpClient _httpClient;
+        private ApplicationDbContext _context;
         private static readonly string[] Summaries = new[]
         {
             "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
@@ -26,13 +30,16 @@ namespace Weather.Server.Controllers
 
         public WeatherForecastController(ILogger<WeatherForecastController> logger,
             IOptions<OpenWeather> openWeather,
-            HttpClient httpClient,IUrlBuilderInterface urlBuilder)
+            HttpClient httpClient,IUrlBuilderInterface urlBuilder,
+            ApplicationDbContext context)
         {
             _httpClient = httpClient;
             _openWeather = openWeather.Value;
             _logger = logger;
             _urlBuilder = urlBuilder;
+            _context = context;
         }
+
 
         [HttpGet(Name = "GetWeatherForecast")]
         public IEnumerable<WeatherForecast> Get()
@@ -158,6 +165,118 @@ namespace Weather.Server.Controllers
 
 
         }
+        [HttpPost("SeedDefaultTenantsAndUsers")]
+        public async Task<ActionResult> SeedDefaultTenantsAndUsers()
+        {
+            int result = 0;
+            List<Tenant> tenants = new List<Tenant>
+            {
+                new Tenant
+                {
+                    Id = Guid.NewGuid(),
+                    CreatedAt = DateTime.Now,
+                    Name = "Agroworld"
+                },
+                new Tenant
+                {
+                    Id = Guid.NewGuid(),
+                    CreatedAt = DateTime.Now,
+                    Name = "Translogistic"
+                },
+                new Tenant
+                {
+                    Id = Guid.NewGuid(),
+                    CreatedAt = DateTime.Now,
+                    Name = "HuntSeason"
+                },
+                new Tenant
+                {
+                    Id = Guid.NewGuid(),
+                    CreatedAt = DateTime.Now,
+                    Name = "Fisher"
+                }
+            };
+
+            if (!_context.Tenants.Any())
+            {
+                await _context.AddRangeAsync(tenants);
+                result += await _context.SaveChangesAsync();
+                tenants = await _context.Tenants.ToListAsync();
+            }
+
+            List<User> users = new List<User>()
+            {
+                new User
+                {
+                    Id = Guid.NewGuid(),
+                    CreatedAt = DateTime.Now,
+                    Name = "Albert",
+                    Email = "albert@gmail.com",
+                    Address = "Lviv",
+                    TenantId = tenants.First(x => x.Name == "Agroworld").Id
+                },
+                new User
+                {
+                    Id = Guid.NewGuid(),
+                    CreatedAt = DateTime.Now,
+                    Name = "Andy",
+                    Email = "andy@gmail.com",
+                    Address = "Damask",
+                    TenantId = tenants.First(x => x.Name == "Translogistic").Id
+                },
+                new User
+                {
+                    Id = Guid.NewGuid(),
+                    CreatedAt = DateTime.Now,
+                    Name = "Conrad",
+                    Email = "conrad@gmail.com",
+                    Address = "Donetsk",
+                    TenantId = tenants.First(x => x.Name == "HuntSeason").Id
+                },
+                new User
+                {
+                    Id = Guid.NewGuid(),
+                    CreatedAt = DateTime.Now,
+                    Name = "Donald",
+                    Email = "donald@gmail.com",
+                    Address = "Kyiv",
+                    TenantId = tenants.First(x => x.Name == "Fisher").Id
+                },
+                new User
+                {
+                    Id = Guid.NewGuid(),
+                    CreatedAt = DateTime.Now,
+                    Name = "John",
+                    Email = "John@gmail.com",
+                    Address = "Krakiw",
+                    TenantId = tenants.First(x => x.Name == "Agroworld").Id
+                },
+                new User
+                {
+                    Id = Guid.NewGuid(),
+                    CreatedAt = DateTime.Now,
+                    Name = "Dean",
+                    Email = "dean@gmail.com",
+                    Address = "Kherson",
+                    TenantId = tenants.First(x => x.Name == "HuntSeason").Id
+                }
+            };
+
+            if (!_context.Users.Any())
+            {
+                await _context.AddRangeAsync(users);
+                result += await _context.SaveChangesAsync();
+            }
+
+            if (result == 0)
+            {
+                return BadRequest($"Seed method affected {result} rows in the database");
+            }
+            return Ok($"Seed method affected {result} rows in the database");
+        }
+
     }
 }
+    
+
 

@@ -11,12 +11,21 @@ namespace Weather.Server.Data
 
         public DbSet<FiveDaysWeather> FiveDaysWeatherCalls { get; set; }
 
+        public DbSet<User> Users { get; set; }
+
+        public DbSet<Tenant> Tenants { get; set; }
+
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext>options) : base(options)
         {
         }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
+
+            builder.Entity<Tenant>()
+                .HasMany(x => x.Users)
+                .WithOne(x => x.Tenant)
+                .HasForeignKey(x => x.TenantId);
         }
     }
 }
