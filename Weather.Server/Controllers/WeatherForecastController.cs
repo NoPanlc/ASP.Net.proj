@@ -10,6 +10,7 @@ using Weather.Server.Interfaces;
 using Weather.Server.Data;
 using Microsoft.EntityFrameworkCore;
 using Weather.Server.Models;
+using Weather.Server.Services;
 
 namespace Weather.Server.Controllers
 {
@@ -27,17 +28,19 @@ namespace Weather.Server.Controllers
 
         private readonly ILogger<WeatherForecastController> _logger;
         private readonly IUrlBuilderInterface _urlBuilder;
+        private readonly ITenantFinderInterface _tenantFinder;
 
         public WeatherForecastController(ILogger<WeatherForecastController> logger,
             IOptions<OpenWeather> openWeather,
             HttpClient httpClient,IUrlBuilderInterface urlBuilder,
-            ApplicationDbContext context)
+            ApplicationDbContext context, ITenantFinderInterface tenantFinder)
         {
             _httpClient = httpClient;
             _openWeather = openWeather.Value;
             _logger = logger;
             _urlBuilder = urlBuilder;
             _context = context;
+            _tenantFinder = tenantFinder;
         }
 
 
@@ -54,7 +57,7 @@ namespace Weather.Server.Controllers
             .ToArray();
         }
         [HttpGet("CurrentWeather")]
-        public async Task<ActionResult<CurrentWeatherDTO>> GetCurrentWeather([FromQuery][Required] string cityName,
+        public async Task<ActionResult<CurrentWeatherDTO>> GetCurrentWeather([FromQuery][Required] string cityName,string userEmail,
                                                    [FromQuery] int? stateCode,
                                                   [FromQuery] int? countryCode)
         {
@@ -64,7 +67,12 @@ namespace Weather.Server.Controllers
                 {
                     return BadRequest("Some configuration or request is empty");
                 }
+                Guid tenantId = await _tenantFinder.GetTenantId(userEmail, _context);
 
+                if (tenantId == default)
+                {
+                    return Unauthorized("Not authorized");
+                }
 
                 string geocodeUrl = _urlBuilder.GeoCodeUrl(_openWeather, cityName, stateCode, countryCode);
 
@@ -98,6 +106,35 @@ namespace Weather.Server.Controllers
                 {
                     return BadRequest("Deserialization of current weather failed");
                 }
+                var call = new CurrentWeather
+                {
+                    Id = Guid.NewGuid(),
+                    CreatedAt = DateTime.Now,
+                    TenantId = tenantId,
+                    Temp = currentWeather.Main!.Temp,
+                    Humidity = currentWeather.Main!.Humidity,
+                    Pressure = currentWeather.Main!.Pressure,
+                    CloudsAll = currentWeather.Clouds!.All,
+                    WindSpeed = currentWeather.Wind!.Speed
+                };
+                await _context.AddAsync(call);
+                await _context.SaveChangesAsync();
+
+                var record = new Record
+                {
+                    Id = Guid.NewGuid(),
+                    CreatedAt = DateTime.Now,
+                    TenantId = tenantId,
+                    City = Name.Name,
+                    State = Name.State,
+                    Country = Name.Country,
+                    Lon = Name.Lon,
+                    Lat = Name.Lat,
+                    CurrentWeatherId = call.Id
+                };
+
+                await _context.AddAsync(record);
+                await _context.SaveChangesAsync();
 
                 return Ok(currentWeather);
             }
@@ -110,7 +147,7 @@ namespace Weather.Server.Controllers
 
         }
         [HttpGet("FiveDaysWeather")]
-        public async Task<ActionResult<FiveDaysWeatherDTO>> GetFiveDaysWeather([FromQuery][Required] string cityName,
+        public async Task<ActionResult<FiveDaysWeatherDTO>> GetFiveDaysWeather([FromQuery][Required] string cityName, string userEmail,
                                                    [FromQuery] int? stateCode,
                                                   [FromQuery] int? countryCode)
         {
@@ -119,6 +156,12 @@ namespace Weather.Server.Controllers
                 if (_openWeather == null || string.IsNullOrWhiteSpace(cityName))
                 {
                     return BadRequest("Some configuration or request is empty");
+                }
+                Guid tenantId = await _tenantFinder.GetTenantId(userEmail, _context);
+
+                if (tenantId == default)
+                {
+                    return Unauthorized("Not authorized");
                 }
 
 
@@ -154,6 +197,31 @@ namespace Weather.Server.Controllers
                 {
                     return BadRequest("Deserialization of current weather failed");
                 }
+                var call = new FiveDaysWeather
+                {
+                    Id = Guid.NewGuid(),
+                    CreatedAt = DateTime.Now,
+                    TenantId = tenantId
+                };
+                await _context.AddAsync(call);
+                await _context.SaveChangesAsync();
+
+                var record = new Record
+                {
+                    Id = Guid.NewGuid(),
+                    CreatedAt = DateTime.Now,
+                    TenantId = tenantId,
+                    City = Name.Name,
+                    State = Name.State,
+                    Country = Name.Country,
+                    Lon = Name.Lon,
+                    Lat = Name.Lat,
+                    FiveDaysWeatherId = call.Id
+                };
+
+                await _context.AddAsync(record);
+                await _context.SaveChangesAsync();
+
 
                 return Ok(fiveDaysWeather);
             }
@@ -165,6 +233,27 @@ namespace Weather.Server.Controllers
 
 
         }
+        [HttpGet("GetAllRecordsForTenant")]
+        public async Task<ActionResult<IEnumerable<Record>>> GetAllRecordsForTenant([FromQuery][Required] string userEmail)
+        {
+            if (_openWeather == null)
+            {
+                return BadRequest("Some configuration or request is empty");
+            }
+
+            Guid tenantId = await _tenantFinder.GetTenantId(userEmail, _context);
+
+            if (tenantId == default)
+            {
+                return Unauthorized("You are not authorized to perform any action");
+            }
+            var records = await _context.Records.Include(x => x.CurrentWeather)
+                                          .Include(x => x.FiveDaysWeather)
+                                          .Where(x => x.TenantId == tenantId)
+                                          .ToListAsync();
+            return Ok(records);
+        }
+
         [HttpPost("SeedDefaultTenantsAndUsers")]
         public async Task<ActionResult> SeedDefaultTenantsAndUsers()
         {

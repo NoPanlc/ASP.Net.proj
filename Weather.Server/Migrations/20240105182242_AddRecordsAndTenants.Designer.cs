@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Weather.Server.Data;
 
@@ -10,9 +11,11 @@ using Weather.Server.Data;
 namespace Weather.Server.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240105182242_AddRecordsAndTenants")]
+    partial class AddRecordsAndTenants
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -80,13 +83,13 @@ namespace Weather.Server.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<Guid?>("CurrentWeatherId")
+                    b.Property<Guid>("CurrentWeatherId")
                         .HasColumnType("char(36)");
 
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<Guid?>("FiveDaysWeatherId")
+                    b.Property<Guid>("FiveDaysWeatherId")
                         .HasColumnType("char(36)");
 
                     b.Property<double>("Lat")
@@ -171,7 +174,7 @@ namespace Weather.Server.Migrations
             modelBuilder.Entity("Weather.Server.Models.CurrentWeather", b =>
                 {
                     b.HasOne("Weather.Server.Models.Tenant", "Tenant")
-                        .WithMany("CurrentWeatherCalls")
+                        .WithMany()
                         .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -182,7 +185,7 @@ namespace Weather.Server.Migrations
             modelBuilder.Entity("Weather.Server.Models.FiveDaysWeather", b =>
                 {
                     b.HasOne("Weather.Server.Models.Tenant", "Tenant")
-                        .WithMany("FiveDaysWeatherCalls")
+                        .WithMany()
                         .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -194,11 +197,15 @@ namespace Weather.Server.Migrations
                 {
                     b.HasOne("Weather.Server.Models.CurrentWeather", "CurrentWeather")
                         .WithMany()
-                        .HasForeignKey("CurrentWeatherId");
+                        .HasForeignKey("CurrentWeatherId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("Weather.Server.Models.FiveDaysWeather", "FiveDaysWeather")
                         .WithMany()
-                        .HasForeignKey("FiveDaysWeatherId");
+                        .HasForeignKey("FiveDaysWeatherId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("Weather.Server.Models.Tenant", "Tenant")
                         .WithMany("Records")
@@ -226,10 +233,6 @@ namespace Weather.Server.Migrations
 
             modelBuilder.Entity("Weather.Server.Models.Tenant", b =>
                 {
-                    b.Navigation("CurrentWeatherCalls");
-
-                    b.Navigation("FiveDaysWeatherCalls");
-
                     b.Navigation("Records");
 
                     b.Navigation("Users");
