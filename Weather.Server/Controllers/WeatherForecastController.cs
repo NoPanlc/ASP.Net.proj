@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using System.ComponentModel.DataAnnotations;
 using Newtonsoft.Json;
-using System.Text;
 using Weather.Server.DTOs;
 using Weather.Server.DTOs.CurrentWeather;
 using Weather.Server.DTOs.FiveDaysWeather;
@@ -10,7 +9,7 @@ using Weather.Server.Interfaces;
 using Weather.Server.Data;
 using Microsoft.EntityFrameworkCore;
 using Weather.Server.Models;
-using Weather.Server.Services;
+using AutoMapper;
 
 namespace Weather.Server.Controllers
 {
@@ -20,20 +19,21 @@ namespace Weather.Server.Controllers
     {
         private readonly OpenWeather _openWeather;
         private readonly HttpClient _httpClient;
-        private ApplicationDbContext _context;
-        private static readonly string[] Summaries = new[]
-        {
+        private readonly ApplicationDbContext _context;
+        private static readonly string[] Summaries =
+        [
             "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-        };
+        ];
 
         private readonly ILogger<WeatherForecastController> _logger;
         private readonly IUrlBuilderInterface _urlBuilder;
         private readonly ITenantFinderInterface _tenantFinder;
+        private readonly IMapper _mapper;
 
         public WeatherForecastController(ILogger<WeatherForecastController> logger,
             IOptions<OpenWeather> openWeather,
             HttpClient httpClient,IUrlBuilderInterface urlBuilder,
-            ApplicationDbContext context, ITenantFinderInterface tenantFinder)
+            ApplicationDbContext context, ITenantFinderInterface tenantFinder, IMapper mapper)
         {
             _httpClient = httpClient;
             _openWeather = openWeather.Value;
@@ -41,6 +41,7 @@ namespace Weather.Server.Controllers
             _urlBuilder = urlBuilder;
             _context = context;
             _tenantFinder = tenantFinder;
+            _mapper = mapper;
         }
 
 
@@ -57,7 +58,8 @@ namespace Weather.Server.Controllers
             .ToArray();
         }
         [HttpGet("CurrentWeather")]
-        public async Task<ActionResult<CurrentWeatherDTO>> GetCurrentWeather([FromQuery][Required] string cityName,string userEmail,
+        public async Task<ActionResult<CurrentWeatherDTO>> GetCurrentWeather([FromQuery][Required] string cityName, 
+                                                    [FromQuery][Required] string userEmail,
                                                    [FromQuery] int? stateCode,
                                                   [FromQuery] int? countryCode)
         {
@@ -84,6 +86,7 @@ namespace Weather.Server.Controllers
                 }
 
                 string geo = await geoResponse.Content.ReadAsStringAsync();
+
                 var geoCode = JsonConvert.DeserializeObject<List<GeoCodeDTO>>(geo);
 
                 if (geoCode == null || geoCode == null || geoCode.Count == 0)
@@ -95,6 +98,7 @@ namespace Weather.Server.Controllers
                 string currentUrl = _urlBuilder.WeatherUrl(_openWeather.CurrentWeatherTemplate, _openWeather, Name);
 
                 var currentWeatherResponse = await _httpClient.GetAsync(currentUrl);
+
                 if (!currentWeatherResponse.IsSuccessStatusCode || currentWeatherResponse == null || currentWeatherResponse.Content == null)
                 {
                     return BadRequest("Call to Open Weather for current weather failed");
@@ -106,32 +110,20 @@ namespace Weather.Server.Controllers
                 {
                     return BadRequest("Deserialization of current weather failed");
                 }
-                var call = new CurrentWeather
+                var call = _mapper.Map<CurrentWeather>(currentWeather, opts =>
                 {
-                    Id = Guid.NewGuid(),
-                    CreatedAt = DateTime.Now,
-                    TenantId = tenantId,
-                    Temp = currentWeather.Main!.Temp,
-                    Humidity = currentWeather.Main!.Humidity,
-                    Pressure = currentWeather.Main!.Pressure,
-                    CloudsAll = currentWeather.Clouds!.All,
-                    WindSpeed = currentWeather.Wind!.Speed
-                };
+                    opts.Items[nameof(CurrentWeather.TenantId)] = tenantId;
+                });
+            
                 await _context.AddAsync(call);
                 await _context.SaveChangesAsync();
 
-                var record = new Record
+                var record = _mapper.Map<Record>(Name, opts =>
                 {
-                    Id = Guid.NewGuid(),
-                    CreatedAt = DateTime.Now,
-                    TenantId = tenantId,
-                    City = Name.Name,
-                    State = Name.State,
-                    Country = Name.Country,
-                    Lon = Name.Lon,
-                    Lat = Name.Lat,
-                    CurrentWeatherId = call.Id
-                };
+                    opts.Items[nameof(Record.TenantId)] = tenantId;
+                    opts.Items[nameof(Record.CurrentWeatherId)] = call.Id;
+                    opts.Items[nameof(Record.FiveDaysWeatherId)] = null;
+                });
 
                 await _context.AddAsync(record);
                 await _context.SaveChangesAsync();
@@ -147,7 +139,7 @@ namespace Weather.Server.Controllers
 
         }
         [HttpGet("FiveDaysWeather")]
-        public async Task<ActionResult<FiveDaysWeatherDTO>> GetFiveDaysWeather([FromQuery][Required] string cityName, string userEmail,
+        public async Task<ActionResult<FiveDaysWeatherDTO>> GetFiveDaysWeather([FromQuery][Required] string cityName, [FromQuery][Required] string userEmail,
                                                    [FromQuery] int? stateCode,
                                                   [FromQuery] int? countryCode)
         {
@@ -197,27 +189,19 @@ namespace Weather.Server.Controllers
                 {
                     return BadRequest("Deserialization of current weather failed");
                 }
-                var call = new FiveDaysWeather
+                var call = _mapper.Map<FiveDaysWeather>(fiveDaysWeather, opts =>
                 {
-                    Id = Guid.NewGuid(),
-                    CreatedAt = DateTime.Now,
-                    TenantId = tenantId
-                };
+                    opts.Items[nameof(FiveDaysWeather.TenantId)] = tenantId;
+                });
                 await _context.AddAsync(call);
                 await _context.SaveChangesAsync();
 
-                var record = new Record
+                var record = _mapper.Map<Record>(Name, opts =>
                 {
-                    Id = Guid.NewGuid(),
-                    CreatedAt = DateTime.Now,
-                    TenantId = tenantId,
-                    City = Name.Name,
-                    State = Name.State,
-                    Country = Name.Country,
-                    Lon = Name.Lon,
-                    Lat = Name.Lat,
-                    FiveDaysWeatherId = call.Id
-                };
+                    opts.Items[nameof(Record.TenantId)] = tenantId;
+                    opts.Items[nameof(Record.CurrentWeatherId)] = null;
+                    opts.Items[nameof(Record.FiveDaysWeatherId)] = call.Id;
+                });
 
                 await _context.AddAsync(record);
                 await _context.SaveChangesAsync();

@@ -4,91 +4,99 @@ namespace Weather.Server.DTOs.FiveDaysWeather
 {
     public class FiveDaysWeatherDTO
     {
-        public string cod { get; set; }
-        public int message { get; set; }
-        public int cnt { get; set; }
-        public List<List>? list { get; set; }
-        public City city { get; set; }
+        public string? Cod { get; set; }
+        public int Message { get; set; } = 0;
+        public int Cnt { get; set; } = 0;
+        public List<List>? List { get; set; }
+        public City? City { get; set; }
     }
     public class City
     {
-        public int id { get; set; }
-        public string name { get; set; }
-        public Coord coord { get; set; }
-        public string country { get; set; }
-        public int population { get; set; }
-        public int timezone { get; set; }
-        public int sunrise { get; set; }
-        public int sunset { get; set; }
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public Coord? Coord { get; set; }
+        public string Country { get; set; } = string.Empty;
+        public int Population { get; set; } = 0;
+        public int Timezone { get; set; } = 0;
+        public int Sunrise { get; set; } = 0;
+        public int Sunset { get; set; } = 0;
     }
 
     public class Clouds
     {
-        public int all { get; set; }
+        public int All { get; set; }
     }
 
     public class Coord
     {
-        public double lat { get; set; }
-        public double lon { get; set; }
+        public double Lat { get; set; }
+        public double Lon { get; set; }
     }
 
     public class List
     {
-        public int dt { get; set; }
-        public Main main { get; set; }
-        public List<Weather> weather { get; set; }
-        public Clouds clouds { get; set; }
-        public Wind wind { get; set; }
-        public int visibility { get; set; }
-        public double pop { get; set; }
-        public Rain rain { get; set; }
-        public Snow snow { get; set; }
-        public Sys sys { get; set; }
-        public string dt_txt { get; set; }
+        public int Dt { get; set; }
+        public Main? Main { get; set; }
+        public List<Weather>? Weather { get; set; }
+        public Clouds? Clouds { get; set; }
+        public Wind? Wind { get; set; }
+        public int Visibility { get; set; } = 0;
+        public double Pop { get; set; } = 0;
+        public Rain? Rain { get; set; }
+        public Snow? Snow { get; set; }
+        public Sys? Sys { get; set; }
+        [JsonProperty("dt_txt")]
+        public string DateText { get; set; } = string.Empty;
     }
 
     public class Main
     {
-        public double temp { get; set; }
-        public double feels_like { get; set; }
-        public double temp_min { get; set; }
-        public double temp_max { get; set; }
-        public int pressure { get; set; }
-        public int sea_level { get; set; }
-        public int grnd_level { get; set; }
-        public int humidity { get; set; }
-        public double temp_kf { get; set; }
+        public double Temp { get; set; } = 0;
+        [JsonProperty("feels_like")]
+        public double FeelsLike { get; set; } = 0;
+        [JsonProperty("temp_min")]
+        public double TempMin { get; set; } = 0;
+        [JsonProperty("temp_max")]
+        public double TempMax { get; set; } = 0;
+        public int Pressure { get; set; } = 0;
+        [JsonProperty("sea_level")]
+        public int SeaLevel { get; set; } = 0;
+        [JsonProperty("grnd_level")]
+        public int GroundLevel { get; set; } = 0;
+        public int Humidity { get; set; } = 0;
+        [JsonProperty("temp_kf")]
+        public double MinMaxTempDiff { get; set; } = 0;
     }
 
     public class Rain
     {
         [JsonProperty("3h")]
-        public double threeHours { get; set; }
+        public double ThreeHours { get; set; } = 0;
     }
+
     public class Snow
     {
         [JsonProperty("3h")]
-        public double threeHours { get; set; }
+        public double ThreeHours { get; set; } = 0;
     }
 
     public class Sys
     {
-        public string pod { get; set; }
+        public string Pod { get; set; } = string.Empty;
     }
 
     public class Weather
     {
-        public int id { get; set; }
-        public string main { get; set; }
-        public string description { get; set; }
-        public string icon { get; set; }
+        public int Id { get; set; }
+        public string Main { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string Icon { get; set; } = string.Empty;
     }
 
     public class Wind
     {
-        public double speed { get; set; }
-        public int deg { get; set; }
-        public double gust { get; set; }
+        public double Speed { get; set; } = 0;
+        public int Deg { get; set; } = 0;
+        public double Gust { get; set; } = 0;
     }
 }

@@ -1,8 +1,5 @@
-﻿using Microsoft.Identity.Client;
-using System.Text;
-using Weather.Server.Data;
+﻿using Weather.Server.Data;
 using Weather.Server.Interfaces;
-using Weather.Server.Models;
 using Microsoft.EntityFrameworkCore;
 
 
